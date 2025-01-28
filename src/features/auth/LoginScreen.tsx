@@ -5,23 +5,50 @@ import {
   Platform,
   Image,
   TouchableOpacity,
+  Animated,
   ActivityIndicator,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useStyles} from 'react-native-unistyles';
 import {loginStyles} from '@unistyles/authStyles';
-import Animated from 'react-native-reanimated';
+// import Animated from 'react-native-reanimated';
 import CustomText from '@components/global/CustomText';
 import BrakerText from '@components/ui/BrakerText';
 import PhoneInput from '@components/ui/PhoneInput';
 import {SocialLogin} from '@components/ui/SocialLogin';
+import {resetAndNavigate} from '@utils/NavigationUtils';
+import useKeyboardOffsetHeight from '@utils/useKeyboardOffsetHeight';
 
 const LoginScreen = () => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const KeyboardOffsetHeight = useKeyboardOffsetHeight();
   const {styles} = useStyles(loginStyles);
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {};
+  useEffect(() => {
+    if (KeyboardOffsetHeight == 0) {
+      Animated.timing(animatedValue, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(animatedValue, {
+        toValue: -KeyboardOffsetHeight * 0.25,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [KeyboardOffsetHeight]);
+
+  const handleLogin = async () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      resetAndNavigate('UserBottonTab');
+    });
+  };
   return (
     <View style={styles.container}>
       <StatusBar hidden={Platform.OS !== 'android'} />
@@ -32,10 +59,11 @@ const LoginScreen = () => {
 
       <Animated.ScrollView
         bounces={false}
+        style={{transform: [{translateY: animatedValue}]}}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         contentContainerStyle={styles.bottomContainer}>
-        <CustomText fontFamily="Okra-Bold" variant="h2" style={styles.title}>
+        <CustomText fontFamily="Okra-Bold" variant="h4" style={styles.title}>
           India's #1 Food Delivery and Dining App
         </CustomText>
 
@@ -65,14 +93,15 @@ const LoginScreen = () => {
         <BrakerText text="or" />
         <SocialLogin />
       </Animated.ScrollView>
-      <View style={styles.footer}>
+
+      {/* <View style={styles.footer}>
         <CustomText>By contuning, you agree to our</CustomText>
         <View style={styles.footerTextContainer}>
           <CustomText style={styles.footerText}>terms of Service</CustomText>
           <CustomText style={styles.footerText}>Privicy Policy</CustomText>
           <CustomText style={styles.footerText}>Content Policy</CustomText>
         </View>
-      </View>
+      </View> */}
     </View>
   );
 };
